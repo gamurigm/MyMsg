@@ -51,7 +51,8 @@ flutter run
 
 ## 🔒 Estructura del Repositorio
 
-Aclaración sobre los archivos de Flutter: Aunque parezca que solo importa `lib/` y `pubspec.yaml`, las carpetas `android/`, `ios/` y `web/` son **fundamentales** porque contienen las configuraciones nativas de permisos (como el acceso de escritura `MANAGE_EXTERNAL_STORAGE` en Android 11+) y los iconos de la aplicación.
+De acuerdo a los requerimientos, este repositorio **solo contiene el código fuente de Flutter (`lib/`)**, el archivo `pubspec.yaml`, y la carpeta `backend/`.
+Las carpetas nativas (`android`, `ios`, `web`) no están versionadas. Si clonas este proyecto, ten en cuenta que deberás regenerar estas carpetas (usando `flutter create .`) y reconfigurar manualmente los permisos de almacenamiento en el `AndroidManifest.xml` si deseas habilitar la descarga de archivos nativa.
 
 ---
 **Desarrollado como proyecto académico de Ingeniería de Software - ESPE.**
