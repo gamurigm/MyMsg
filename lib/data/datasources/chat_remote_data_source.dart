@@ -38,7 +38,7 @@ class ChatRemoteDataSource {
     _doConnect();
   }
 
-  void _doConnect() {
+  void _doConnect() async {
     if (!_shouldReconnect || _currentUserId == null) return;
 
     // Cancel any pending reconnect timer
@@ -62,6 +62,9 @@ class ChatRemoteDataSource {
       _channel = WebSocketChannel.connect(
         Uri.parse('$wsUrl/ws?userId=$_currentUserId'),
       );
+
+      // Await ready to catch connection errors without crashing the app
+      await _channel!.ready;
 
       _wsSubscription = _channel!.stream.listen(
         (event) {
