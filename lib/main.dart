@@ -38,6 +38,7 @@ void setupLocator() {
       getMessagesStream: sl(),
       sendMessage: sl(),
       repository: sl(),
+      dataSource: sl(),
     ),
   );
 }

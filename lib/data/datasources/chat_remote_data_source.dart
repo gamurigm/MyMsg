@@ -128,6 +128,20 @@ class ChatRemoteDataSource {
     });
   }
 
+  bool get isConnected => _isConnected;
+
+  /// Reconecta usando las credenciales guardadas si el WS está caído.
+  /// Útil cuando el BLoC se suscribe al stream pero la conexión ya fue
+  /// establecida antes por main.dart (restauración de sesión).
+  void reconnectIfNeeded() {
+    if (_currentUserId != null && !_isConnected && !_isReconnecting) {
+      print('[WS] 🔁 reconnectIfNeeded: reconectando como $_currentUserId...');
+      _shouldReconnect = true;
+      _reconnectAttempts = 0;
+      _doConnect();
+    }
+  }
+
   Stream<Message> get messageStream => _messageController.stream;
 
   void sendMessage(Message message) {
