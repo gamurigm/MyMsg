@@ -10,13 +10,14 @@ class ChatRemoteDataSource {
   String restUrl;
   WebSocketChannel? _channel;
   String? _currentUserId;
-  bool _isConnected = false;
+  bool _isConnected = false;   // True when we've received at least one message
+  bool _channelReady = false;  // True as soon as the WS handshake succeeds
   bool _shouldReconnect = true;
-  bool _isReconnecting = false; // Guard against concurrent reconnects
+  bool _isReconnecting = false;
   int _reconnectAttempts = 0;
   Timer? _reconnectTimer;
-  StreamSubscription? _wsSubscription; // Track the listener to cancel it cleanly
-  static const int _maxReconnectDelay = 30; // seconds
+  StreamSubscription? _wsSubscription;
+  static const int _maxReconnectDelay = 30;
 
   // StreamController persistente que sobrevive a reconexiones
   final StreamController<Message> _messageController =
@@ -56,6 +57,7 @@ class ChatRemoteDataSource {
     } catch (_) {}
     _channel = null;
     _isConnected = false;
+    _channelReady = false;
 
     try {
       print('[WS] Conectando a $wsUrl/ws?userId=$_currentUserId ...');
@@ -65,6 +67,8 @@ class ChatRemoteDataSource {
 
       // Await ready to catch connection errors without crashing the app
       await _channel!.ready;
+      _channelReady = true;
+      print('[WS] ✅ Canal listo para enviar.');
 
       _wsSubscription = _channel!.stream.listen(
         (event) {
@@ -106,6 +110,7 @@ class ChatRemoteDataSource {
     } catch (e) {
       print('[WS] ❌ Excepción al conectar: $e');
       _isConnected = false;
+      _channelReady = false;
       _scheduleReconnect();
     }
   }
@@ -145,7 +150,12 @@ class ChatRemoteDataSource {
   Stream<Message> get messageStream => _messageController.stream;
 
   void sendMessage(Message message) {
-    if (!_isConnected || _channel == null) return;
+    // Usar _channelReady: el canal está listo tras el handshake WS,
+    // sin esperar a recibir ningún mensaje del servidor.
+    if (!_channelReady || _channel == null) {
+      print('[WS] ⚠️ sendMessage ignorado: canal no listo (channelReady=$_channelReady)');
+      return;
+    }
     final payload = jsonEncode({
       'id': message.id,
       'chatId': message.chatId,
